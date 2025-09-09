@@ -16,7 +16,7 @@ model User {
   id               String       @id @db.VarChar(50)
   email            String       @unique @db.VarChar(255)
   name             String       @db.VarChar(255)
-  role             UserRole     @db.VarChar(20)
+  role             UserRole     @default(USER)
   passwordHash     String       @map("password_hash") @db.VarChar(255)
   phone            String?      @db.VarChar(20)
   birthDate        DateTime?    @map("birth_date") @db.Date
