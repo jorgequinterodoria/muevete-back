@@ -5,14 +5,15 @@ import { createErrorResponse, createSuccessResponse, sanitizeUser } from '@/lib/
 import { UserRole } from '@prisma/client'
 
 interface RouteParams {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 // GET - Obtener usuario por ID
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         email: true,
@@ -40,10 +41,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const body = await request.json()
     const { email, password, name, role } = body
+    const { id } = await params
     
     // Verificar si el usuario existe
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
     
     if (!existingUser) {
@@ -65,7 +67,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     
     // Actualizar usuario
     const user = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData
     })
     
@@ -80,9 +82,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE - Eliminar usuario
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params
+    
     // Verificar si el usuario existe
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
     
     if (!existingUser) {
@@ -91,7 +95,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     
     // Eliminar usuario
     await prisma.user.delete({
-      where: { id: params.id }
+      where: { id }
     })
     
     return createSuccessResponse({ message: 'Usuario eliminado exitosamente' })
