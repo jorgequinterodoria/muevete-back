@@ -5,15 +5,16 @@ import { createErrorResponse, createSuccessResponse } from '@/lib/utils'
 import { ZodIssue } from 'zod'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 // GET /api/routines/[id] - Obtener rutina específica
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const routineId = parseInt(params.id)
+    const { id } = await params
+    const routineId = parseInt(id)
 
     if (isNaN(routineId)) {
       return createErrorResponse('ID de rutina inválido', 400)
@@ -67,7 +68,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/routines/[id] - Actualizar rutina
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const routineId = parseInt(params.id)
+    const { id } = await params
+    const routineId = parseInt(id)
 
     if (isNaN(routineId)) {
       return createErrorResponse('ID de rutina inválido', 400)
@@ -81,31 +83,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse(errors, 400)
     }
 
-    // Verificar si la rutina existe
+    // Verificar que la rutina existe
     const existingRoutine = await prisma.dayRoutine.findUnique({
       where: { id: routineId }
     })
 
     if (!existingRoutine) {
       return createErrorResponse('Rutina no encontrada', 404)
-    }
-
-    // Si se está actualizando semana o día, verificar que no exista conflicto
-    if (validation.data.week || validation.data.day) {
-      const conflictCheck = await prisma.dayRoutine.findFirst({
-        where: {
-          AND: [
-            { id: { not: routineId } },
-            { clientId: existingRoutine.clientId },
-            { week: validation.data.week || existingRoutine.week },
-            { day: validation.data.day || existingRoutine.day }
-          ]
-        }
-      })
-
-      if (conflictCheck) {
-        return createErrorResponse('Ya existe una rutina para este cliente, semana y día', 409)
-      }
     }
 
     const updatedRoutine = await prisma.dayRoutine.update({
@@ -147,20 +131,26 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/routines/[id] - Eliminar rutina
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const routineId = parseInt(params.id)
+    const { id } = await params
+    const routineId = parseInt(id)
 
     if (isNaN(routineId)) {
       return createErrorResponse('ID de rutina inválido', 400)
     }
 
+    // Verificar que la rutina existe
     const existingRoutine = await prisma.dayRoutine.findUnique({
-      where: { id: routineId }
+      where: { id: routineId },
+      include: {
+        routineExercises: true
+      }
     })
 
     if (!existingRoutine) {
       return createErrorResponse('Rutina no encontrada', 404)
     }
 
+    // Eliminar la rutina (esto también eliminará los ejercicios relacionados si hay cascada)
     await prisma.dayRoutine.delete({
       where: { id: routineId }
     })
