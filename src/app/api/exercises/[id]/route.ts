@@ -3,7 +3,6 @@ import { prisma } from '@/lib/db'
 import { exerciseUpdateSchema } from '@/lib/validations'
 import { createErrorResponse, createSuccessResponse } from '@/lib/utils'
 import { ZodIssue } from 'zod'
-import { Prisma } from '@prisma/client'
 
 interface RouteParams {
   params: {
@@ -87,6 +86,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Preparar datos para actualización, convirtiendo difficulty a minúsculas
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = { ...validation.data }
     if (updateData.difficulty) {
       updateData.difficulty = updateData.difficulty.toLowerCase()

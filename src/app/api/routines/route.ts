@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Construir filtros
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {}
     if (clientId) where.clientId = clientId
     if (week) where.week = parseInt(week)
