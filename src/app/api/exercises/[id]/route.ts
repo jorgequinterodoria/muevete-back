@@ -5,15 +5,15 @@ import { createErrorResponse, createSuccessResponse } from '@/lib/utils'
 import { ZodIssue } from 'zod'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 // GET /api/exercises/[id] - Obtener ejercicio específico
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const exercise = await prisma.exercise.findUnique({
       where: { id },
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/exercises/[id] - Actualizar ejercicio
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     const validation = exerciseUpdateSchema.safeParse(body)
@@ -107,7 +107,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/exercises/[id] - Eliminar ejercicio
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params
+    const { id } = await params
 
     // Verificar si el ejercicio existe
     const existingExercise = await prisma.exercise.findUnique({
