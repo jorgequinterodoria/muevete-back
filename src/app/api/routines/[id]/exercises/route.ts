@@ -5,15 +5,16 @@ import { createErrorResponse, createSuccessResponse } from '@/lib/utils'
 import { ZodIssue } from 'zod'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 // GET /api/routines/[id]/exercises - Obtener ejercicios de una rutina
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const routineId = parseInt(params.id)
+    const { id } = await params
+    const routineId = parseInt(id)
 
     if (isNaN(routineId)) {
       return createErrorResponse('ID de rutina inválido', 400)
@@ -61,7 +62,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // POST /api/routines/[id]/exercises - Agregar ejercicio a rutina
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const routineId = parseInt(params.id)
+    const { id } = await params
+    const routineId = parseInt(id)
 
     if (isNaN(routineId)) {
       return createErrorResponse('ID de rutina inválido', 400)
