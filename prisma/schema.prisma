@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id               String       @id @db.VarChar(50)
+  email            String       @unique @db.VarChar(255)
+  name             String       @db.VarChar(255)
+  role             UserRole     @db.VarChar(20)
+  passwordHash     String       @map("password_hash") @db.VarChar(255)
+  phone            String?      @db.VarChar(20)
+  birthDate        DateTime?    @map("birth_date") @db.Date
+  registrationDate DateTime?    @map("registration_date") @db.Date
+  status           String?      @db.VarChar(20)
+  notes            String?
+  createdAt        DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime?    @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  dayRoutines      DayRoutine[]
+
+  @@index([email], map: "idx_users_email")
+  @@index([role], map: "idx_users_role")
+  @@index([status], map: "idx_users_status")
+  @@map("users")
+}
+
+model Exercise {
+  id               String            @id @db.VarChar(50)
+  name             String            @db.VarChar(255)
+  description      String?
+  primaryMuscle    String            @map("primary_muscle") @db.VarChar(100)
+  secondaryMuscles String[]          @map("secondary_muscles")
+  type             String            @db.VarChar(50)
+  difficulty       String            @db.VarChar(20)
+  equipment        String?           @db.VarChar(255)
+  instructions     String[]
+  mediaUrl         String?           @map("media_url") @db.VarChar(500)
+  createdAt        DateTime?         @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime?         @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  routineExercises RoutineExercise[]
+
+  @@index([difficulty], map: "idx_exercises_difficulty")
+  @@index([primaryMuscle], map: "idx_exercises_primary_muscle")
+  @@index([type], map: "idx_exercises_type")
+  @@map("exercises")
+}
+
+model DayRoutine {
+  id               Int               @id @default(autoincrement())
+  clientId         String            @map("client_id") @db.VarChar(50)
+  week             Int
+  day              String            @db.VarChar(20)
+  createdAt        DateTime?         @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime?         @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  client           User              @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  routineExercises RoutineExercise[]
+
+  @@unique([clientId, week, day])
+  @@index([clientId, week], map: "idx_day_routines_client_week")
+  @@map("day_routines")
+}
+
+model RoutineExercise {
+  id         Int        @id @default(autoincrement())
+  routineId  Int        @map("routine_id")
+  exerciseId String     @map("exercise_id") @db.VarChar(50)
+  sets       Int
+  reps       Int
+  weight     Decimal?   @db.Decimal(5, 2)
+  rest       Int
+  notes      String?
+  completed  Boolean?   @default(false)
+  orderIndex Int        @map("order_index")
+  createdAt  DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime?  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  exercise   Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  routine    DayRoutine @relation(fields: [routineId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([exerciseId], map: "idx_routine_exercises_exercise_id")
+  @@index([routineId], map: "idx_routine_exercises_routine_id")
+  @@map("routine_exercises")
+}
