@@ -5,26 +5,27 @@ import { createErrorResponse, createSuccessResponse } from '@/lib/utils'
 import { ZodIssue } from 'zod'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
     exerciseId: string
-  }
+  }>
 }
 
 // GET /api/routines/[id]/exercises/[exerciseId] - Obtener ejercicio específico de rutina
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const routineId = parseInt(params.id)
-    const exerciseId = parseInt(params.exerciseId)
+    const { id, exerciseId } = await params
+    const routineId = parseInt(id)
+    const exerciseIdNum = parseInt(exerciseId)
 
-    if (isNaN(routineId) || isNaN(exerciseId)) {
+    if (isNaN(routineId) || isNaN(exerciseIdNum)) {
       return createErrorResponse('IDs inválidos', 400)
     }
 
     const routineExercise = await prisma.routineExercise.findFirst({
       where: {
         routineId,
-        id: exerciseId
+        id: exerciseIdNum
       },
       include: {
         exercise: {
@@ -66,10 +67,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/routines/[id]/exercises/[exerciseId] - Actualizar ejercicio en rutina
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const routineId = parseInt(params.id)
-    const exerciseId = parseInt(params.exerciseId)
+    const { id, exerciseId } = await params
+    const routineId = parseInt(id)
+    const exerciseIdNum = parseInt(exerciseId)
 
-    if (isNaN(routineId) || isNaN(exerciseId)) {
+    if (isNaN(routineId) || isNaN(exerciseIdNum)) {
       return createErrorResponse('IDs inválidos', 400)
     }
 
@@ -85,7 +87,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const existingRoutineExercise = await prisma.routineExercise.findFirst({
       where: {
         routineId,
-        id: exerciseId
+        id: exerciseIdNum
       }
     })
 
@@ -94,7 +96,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const updatedRoutineExercise = await prisma.routineExercise.update({
-      where: { id: exerciseId },
+      where: { id: exerciseIdNum },
       data: validation.data,
       include: {
         exercise: {
@@ -124,10 +126,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/routines/[id]/exercises/[exerciseId] - Eliminar ejercicio de rutina
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const routineId = parseInt(params.id)
-    const exerciseId = parseInt(params.exerciseId)
+    const { id, exerciseId } = await params
+    const routineId = parseInt(id)
+    const exerciseIdNum = parseInt(exerciseId)
 
-    if (isNaN(routineId) || isNaN(exerciseId)) {
+    if (isNaN(routineId) || isNaN(exerciseIdNum)) {
       return createErrorResponse('IDs inválidos', 400)
     }
 
@@ -135,7 +138,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const existingRoutineExercise = await prisma.routineExercise.findFirst({
       where: {
         routineId,
-        id: exerciseId
+        id: exerciseIdNum
       }
     })
 
@@ -144,7 +147,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     await prisma.routineExercise.delete({
-      where: { id: exerciseId }
+      where: { id: exerciseIdNum }
     })
 
     return createSuccessResponse({ message: 'Ejercicio eliminado de la rutina exitosamente' })
@@ -157,10 +160,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 // PATCH /api/routines/[id]/exercises/[exerciseId] - Marcar ejercicio como completado/no completado
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const routineId = parseInt(params.id)
-    const exerciseId = parseInt(params.exerciseId)
+    const { id, exerciseId } = await params
+    const routineId = parseInt(id)
+    const exerciseIdNum = parseInt(exerciseId)
 
-    if (isNaN(routineId) || isNaN(exerciseId)) {
+    if (isNaN(routineId) || isNaN(exerciseIdNum)) {
       return createErrorResponse('IDs inválidos', 400)
     }
 
@@ -175,7 +179,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const existingRoutineExercise = await prisma.routineExercise.findFirst({
       where: {
         routineId,
-        id: exerciseId
+        id: exerciseIdNum
       }
     })
 
@@ -184,7 +188,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const updatedRoutineExercise = await prisma.routineExercise.update({
-      where: { id: exerciseId },
+      where: { id: exerciseIdNum },
       data: { completed },
       include: {
         exercise: {
