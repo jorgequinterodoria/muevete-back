@@ -81,14 +81,14 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Iniciar servidor
-app.listen(PORT, async () => {
-  console.log(`🚀 Servidor ejecutándose en puerto ${PORT}`);
-  console.log(`🌍 Entorno: ${process.env.NODE_ENV}`);
-  
-  // Verificar conexión a base de datos al iniciar
-  await testConnection();
-});
+// Iniciar servidor (solo fuera de Vercel)
+if (!process.env.VERCEL) {
+  app.listen(PORT, async () => {
+    console.log(`🚀 Servidor ejecutándose en puerto ${PORT}`);
+    console.log(`🌍 Entorno: ${process.env.NODE_ENV}`);
+    await testConnection();
+  });
+}
 
 // Manejo de cierre graceful
 process.on('SIGTERM', () => {
